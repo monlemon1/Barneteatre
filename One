@@ -51,7 +51,7 @@
 
     .header {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
       padding: 16px 20px;
       border-bottom: 1px solid var(--panel-border);
@@ -67,16 +67,6 @@
 
     .logo span {
       color: var(--text-soft);
-    }
-
-    .badge {
-      font-size: 12px;
-      color: var(--text-soft);
-      border: 1px solid var(--panel-border);
-      padding: 6px 10px;
-      border-radius: 999px;
-      letter-spacing: 0.7px;
-      text-transform: uppercase;
     }
 
     .player-wrap {
@@ -183,24 +173,6 @@
       filter: grayscale(1);
     }
 
-    .meta {
-      padding: 16px 18px 18px;
-      display: grid;
-      gap: 6px;
-      border-top: 1px solid var(--panel-border);
-    }
-
-    .title {
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .subtitle {
-      font-size: 13px;
-      color: var(--text-soft);
-      line-height: 1.45;
-    }
-
     .player-wrap.hide-ui .controls {
       transform: translateY(14px);
       opacity: 0;
@@ -238,7 +210,6 @@
   <main class="app">
     <header class="header">
       <div class="logo">Pupa<span>mupa</span></div>
-      <div class="badge">Mono player</div>
     </header>
 
     <section class="player-wrap" id="playerWrap">
@@ -276,10 +247,6 @@
       </div>
     </section>
 
-    <section class="meta">
-      <h1 class="title">Pupamupa</h1>
-      <p class="subtitle">Минималистичный чёрно-белый плеер с плавной анимацией, горячими клавишами и удобным управлением.</p>
-    </section>
   </main>
 
   <script>
