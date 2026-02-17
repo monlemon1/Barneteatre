@@ -97,6 +97,27 @@
       transition: opacity 260ms ease;
     }
 
+    .buffering {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      font-size: 12px;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: rgba(0, 0, 0, 0.65);
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      pointer-events: none;
+    }
+
+    .buffering.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
     .controls {
       position: absolute;
       left: 0;
@@ -219,6 +240,7 @@
       </video>
 
       <div class="gradient-overlay"></div>
+      <div class="buffering" id="bufferingBadge">Загрузка...</div>
 
       <div class="controls" id="controls">
         <input class="progress" id="progress" type="range" min="0" max="100" step="0.1" value="0" />
@@ -231,7 +253,7 @@
             <input class="volume" id="volume" type="range" min="0" max="1" step="0.01" value="1" />
           </div>
 
-          <div class="time" id="timeLabel">00:00 / 00:00</div>
+          <div class="time" id="timeLabel">00:00 / 00:00 • Буфер 0%</div>
 
           <div class="right">
             <select class="speed" id="speed" title="Скорость">
@@ -260,8 +282,11 @@
     const timeLabel = document.getElementById('timeLabel');
     const speed = document.getElementById('speed');
     const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const bufferingBadge = document.getElementById('bufferingBadge');
 
     let hideTimer = null;
+    let preloadStarted = false;
+    let bufferedPercent = 0;
 
     function formatTime(seconds) {
       if (!Number.isFinite(seconds)) return '00:00';
@@ -274,7 +299,33 @@
     function updateTime() {
       const current = formatTime(video.currentTime);
       const total = formatTime(video.duration);
-      timeLabel.textContent = `${current} / ${total}`;
+      timeLabel.textContent = `${current} / ${total} • Буфер ${bufferedPercent}%`;
+    }
+
+    function updateBuffered() {
+      if (!video.duration || video.buffered.length === 0) {
+        bufferedPercent = 0;
+        updateTime();
+        return;
+      }
+
+      const currentTime = video.currentTime;
+      let bufferEnd = 0;
+      for (let i = 0; i < video.buffered.length; i += 1) {
+        const start = video.buffered.start(i);
+        const end = video.buffered.end(i);
+        if (currentTime >= start && currentTime <= end) {
+          bufferEnd = end;
+          break;
+        }
+      }
+
+      if (bufferEnd === 0) {
+        bufferEnd = video.buffered.end(video.buffered.length - 1);
+      }
+
+      bufferedPercent = Math.max(0, Math.min(100, Math.round((bufferEnd / video.duration) * 100)));
+      updateTime();
     }
 
     function updateProgress() {
@@ -285,6 +336,10 @@
 
     function togglePlay() {
       if (video.paused) {
+        if (!preloadStarted) {
+          preloadStarted = true;
+          video.preload = 'auto';
+        }
         video.play();
       } else {
         video.pause();
@@ -329,6 +384,12 @@
 
     video.addEventListener('loadedmetadata', updateTime);
     video.addEventListener('timeupdate', updateProgress);
+    video.addEventListener('progress', updateBuffered);
+    video.addEventListener('loadeddata', updateBuffered);
+    video.addEventListener('canplay', () => bufferingBadge.classList.remove('show'));
+    video.addEventListener('playing', () => bufferingBadge.classList.remove('show'));
+    video.addEventListener('waiting', () => bufferingBadge.classList.add('show'));
+    video.addEventListener('stalled', () => bufferingBadge.classList.add('show'));
 
     progress.addEventListener('input', () => {
       if (!video.duration) return;
@@ -371,6 +432,7 @@
 
     refreshPlayIcon();
     updateTime();
+    updateBuffered();
   </script>
 </body>
 </html>
