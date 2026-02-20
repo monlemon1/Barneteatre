@@ -206,16 +206,73 @@
 
     @media (max-width: 800px) {
       body {
-        padding: 10px;
+        padding: 6px;
       }
 
-      .time {
-        order: 2;
+      .app {
+        border-radius: 14px;
+      }
+
+      .header {
+        padding: 12px 14px;
+      }
+
+      .logo {
+        font-size: 16px;
+      }
+
+      .controls {
+        padding: 10px;
+        gap: 8px;
+      }
+
+      .row {
+        gap: 8px;
+      }
+
+      .left,
+      .right {
         width: 100%;
+        justify-content: space-between;
       }
 
       .volume {
-        width: 84px;
+        width: min(34vw, 120px);
+      }
+
+      .time {
+        order: 3;
+        width: 100%;
+        font-size: 12px;
+      }
+
+      button,
+      .speed {
+        min-width: 42px;
+        min-height: 42px;
+        padding: 8px;
+      }
+
+      .speed {
+        min-width: 70px;
+      }
+
+      .buffering {
+        top: 10px;
+        right: 10px;
+        font-size: 11px;
+      }
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      .player-wrap.hide-ui .controls {
+        transform: none;
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .player-wrap.hide-ui .gradient-overlay {
+        opacity: 1;
       }
     }
 
@@ -234,7 +291,7 @@
     </header>
 
     <section class="player-wrap" id="playerWrap">
-      <video id="video" preload="metadata">
+      <video id="video" preload="metadata" playsinline webkit-playsinline>
         <source src="https://pub-90e41bdd38724be8927d1f16c66b7ac6.r2.dev/Sequence%2001.mp4" type="video/mp4" />
         Ваш браузер не поддерживает воспроизведение видео.
       </video>
@@ -287,6 +344,7 @@
     let hideTimer = null;
     let preloadStarted = false;
     let bufferedPercent = 0;
+    const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 
     function formatTime(seconds) {
       if (!Number.isFinite(seconds)) return '00:00';
@@ -351,6 +409,7 @@
     }
 
     function showUiTemporarily() {
+      if (isTouchDevice) return;
       playerWrap.classList.remove('hide-ui');
       clearTimeout(hideTimer);
       if (!video.paused) {
@@ -405,6 +464,11 @@
     });
 
     fullscreenBtn.addEventListener('click', async () => {
+      if (video.webkitEnterFullscreen && isTouchDevice) {
+        video.webkitEnterFullscreen();
+        return;
+      }
+
       if (!document.fullscreenElement) {
         await playerWrap.requestFullscreen();
       } else {
